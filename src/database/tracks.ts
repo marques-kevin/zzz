@@ -28,14 +28,6 @@ export const tracks: Track[] = [
     ...Albums["casual-savior"],
   },
   {
-    title: "Derailed Order Day",
-    title_id: "derailed-order-day",
-    artist: "Bangblues",
-    artist_id: "bangblues",
-    source: "/musics/derailed-order-day.mp3",
-    ...Albums["eous-anthems"],
-  },
-  {
     title: "Sword of Corruption",
     title_id: "sword-of-corruption",
     artist: "Bangblues",

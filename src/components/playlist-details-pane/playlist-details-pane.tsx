@@ -7,7 +7,7 @@ import {
   ContainerProps,
 } from "./container/playlist-details-pane.container";
 import clsx from "clsx";
-import { ArrowDown, ChevronDown } from "lucide-react";
+import { ArrowDown, ChevronDown, PauseIcon } from "lucide-react";
 
 export const Wrapper: React.FC<ContainerProps> = (props) => {
   const tracks_in_album = tracks.filter(
@@ -74,26 +74,50 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
             <div className="ml-auto p-4">Durée</div>
           </div>
           <div>
-            {tracks_in_album.map((_, i) => (
-              <div
-                onClick={() => props.onPlay({ title_id: _.title_id })}
-                className="cursor-pointer py-2 flex items-center w-full border-transparent group hover:bg-zinc-800 border rounded relative"
-              >
-                <div className="px-4 w-10 relative">
-                  <div className="text-zinc-400 group-hover:opacity-0">
-                    {i + 1}
+            {tracks_in_album.map((_, i) => {
+              const is_current_track =
+                props.current_track?.title_id === _.title_id;
+              const is_playing = props.is_playing && is_current_track;
+
+              return (
+                <div
+                  onClick={() => props.onPlay({ title_id: _.title_id })}
+                  className="cursor-pointer py-2 flex items-center w-full border-transparent group hover:bg-zinc-800 border rounded relative"
+                >
+                  <div className="px-4 w-10 h-[20px] relative">
+                    {!is_playing && (
+                      <div className="text-zinc-400 group-hover:opacity-0">
+                        {i + 1}
+                      </div>
+                    )}
+                    {is_playing && (
+                      <div className="flex items-end group-hover:opacity-0">
+                        <div className="playing-animation h-[20px]">
+                          <div className="bar !bg-green-400"></div>
+                          <div className="bar !bg-green-400"></div>
+                          <div className="bar !bg-green-400"></div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute opacity-0 group-hover:opacity-100 inset-0 flex items-center justify-center">
+                      {is_playing && (
+                        <PauseIcon className="h-4 w-4 text-zinc-50" />
+                      )}
+                      {!is_playing && (
+                        <PlayIcon className="h-4 w-4 text-zinc-50" />
+                      )}
+                    </div>
                   </div>
-                  <div className="absolute opacity-0 group-hover:opacity-100 inset-0 flex items-center justify-center">
-                    <PlayIcon className="h-4 w-4 text-zinc-50" />
+                  <div className="px-4">
+                    <div className={clsx(is_current_track && "text-green-400")}>
+                      {_.title}
+                    </div>
+                    <div className="text-zinc-400">{_.artist}</div>
                   </div>
+                  <div className="ml-auto px-4">2:50</div>
                 </div>
-                <div className="px-4">
-                  <div className="">{_.title}</div>
-                  <div className="text-zinc-400">{_.artist}</div>
-                </div>
-                <div className="ml-auto px-4">2:50</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

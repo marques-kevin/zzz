@@ -15,6 +15,7 @@ const mapState = (state: RootState) => {
     playlist_cover: playlist?.album_cover,
     playlist_title: playlist?.title,
     playlist_artist: playlist?.artist,
+    current_track: state.player.current_track,
   };
 };
 
