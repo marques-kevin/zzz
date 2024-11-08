@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { connector, ContainerProps } from "./container/player-bar.container";
+import { useFullscreen } from "@/hooks/use-fullscreen";
 
 export const Wrapper: React.FC<ContainerProps> = (props) => {
   const [currentTime, setCurrentTime] = useState(0);
@@ -58,6 +59,8 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
       .toString()
       .padStart(2, "0")}`;
   };
+
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
 
   const onVolumeChange = (value: number) => {
     if (value === 0) {
@@ -225,16 +228,10 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => {
-                if (document.fullscreenElement) {
-                  document.exitFullscreen();
-                } else {
-                  document.documentElement.requestFullscreen();
-                }
-              }}
+              onClick={toggleFullscreen}
               className="text-zinc-50 hover:bg-[#1A1A1A]"
             >
-              {document.fullscreenElement ? (
+              {isFullscreen ? (
                 <Minimize2 className="h-4 w-4" />
               ) : (
                 <Maximize2 className="h-4 w-4" />

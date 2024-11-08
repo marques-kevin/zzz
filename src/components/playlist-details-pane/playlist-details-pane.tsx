@@ -26,7 +26,7 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
         className="absolute top-4 right-4"
       >
         <div className="flex items-center justify-end p-2 hover:bg-zinc-700 rounded-full">
-          <ChevronDown className="h-5 w-5 text-zinc-400" />
+          <ChevronDown className="h-6 w-6 text-zinc-400" />
         </div>
       </button>
       <div className="flex items-center gap-4 bg-zinc-800 p-4">
@@ -68,7 +68,7 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
 
       <div className="grid gap-6 px-6 mt-6 overflow-auto">
         <div className="w-full">
-          <div className="border-b border-zinc-800 text-zinc-400 flex items-center">
+          <div className="border-b mb-4 border-zinc-800 text-zinc-400 flex items-center">
             <div className="w-10 text-left p-4">#</div>
             <div className="text-left  p-4">Titre</div>
             <div className="ml-auto p-4">Durée</div>
@@ -79,7 +79,14 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
                 onClick={() => props.onPlay({ title_id: _.title_id })}
                 className="cursor-pointer py-2 flex items-center w-full border-transparent group hover:bg-zinc-800 border rounded relative"
               >
-                <div className="px-4 w-10">{i + 1}</div>
+                <div className="px-4 w-10 relative">
+                  <div className="text-zinc-400 group-hover:opacity-0">
+                    {i + 1}
+                  </div>
+                  <div className="absolute opacity-0 group-hover:opacity-100 inset-0 flex items-center justify-center">
+                    <PlayIcon className="h-4 w-4 text-zinc-50" />
+                  </div>
+                </div>
                 <div className="px-4">
                   <div className="">{_.title}</div>
                   <div className="text-zinc-400">{_.artist}</div>
