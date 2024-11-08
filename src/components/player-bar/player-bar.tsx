@@ -4,12 +4,17 @@ import { Slider } from "@/components/ui/slider";
 import {
   Maximize2,
   Mic2,
+  Minimize2,
   MonitorSpeaker,
   PauseIcon,
+  Repeat1Icon,
   RepeatIcon,
   Shuffle,
   SkipBack,
   SkipForward,
+  Volume2Icon,
+  VolumeIcon,
+  VolumeXIcon,
 } from "lucide-react";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { connector, ContainerProps } from "./container/player-bar.container";
@@ -18,6 +23,9 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(100);
+  const [volumeBeforeMuted, setVolumeBeforeMuted] = useState(100);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -27,7 +35,7 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
         audioRef.current.pause();
       }
     }
-  }, [props.is_playing]);
+  }, [props.is_playing, props.current_track]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -51,6 +59,50 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
       .padStart(2, "0")}`;
   };
 
+  const onVolumeChange = (value: number) => {
+    if (value === 0) {
+      setIsMuted(true);
+    } else {
+      setIsMuted(false);
+    }
+
+    setVolume(value);
+
+    if (isMuted) {
+      setIsMuted(false);
+    }
+
+    if (audioRef.current) {
+      audioRef.current.volume = value / 100;
+    }
+  };
+
+  const onToggleMute = () => {
+    if (isMuted) {
+      setVolume(volumeBeforeMuted);
+    } else {
+      setVolumeBeforeMuted(volume);
+      setVolume(0);
+    }
+
+    setIsMuted(!isMuted);
+
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+    }
+  };
+
+  const onEnd = () => {
+    if (props.replay_mode === "replay_track") {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
+    } else {
+      props.onNext();
+    }
+  };
+
   return (
     <div className=" p-4">
       <div className="flex items-center gap-4">
@@ -59,14 +111,17 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
             alt="Now playing"
             className="rounded"
             height={56}
-            src="/covers/derailed-order-day.png"
+            src={props.current_track.album_cover}
             width={56}
           />
           <div>
-            <div className="">Derailed Order Day</div>
-            <div className="text-sm text-zinc-500">Bangblues</div>
+            <div className="">{props.current_track.title}</div>
+            <div className="text-sm text-zinc-500">
+              {props.current_track.artist}
+            </div>
           </div>
         </div>
+
         <div className="flex flex-1 flex-col items-center gap-2">
           <div className="flex items-center gap-4">
             <Button
@@ -76,7 +131,12 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
             >
               <Shuffle className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="ghost" className=" hover:bg-[#1A1A1A]">
+            <Button
+              onClick={props.onPrevious}
+              size="icon"
+              variant="ghost"
+              className=" hover:bg-[#1A1A1A]"
+            >
               <SkipBack className="h-4 w-4 text-zinc-50 fill-zinc-50" />
             </Button>
             <Button
@@ -96,15 +156,27 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
                 <PlayIcon className="h-4 w-4" />
               )}
             </Button>
-            <Button size="icon" variant="ghost" className=" hover:bg-[#1A1A1A]">
+            <Button
+              onClick={props.onNext}
+              size="icon"
+              variant="ghost"
+              className=" hover:bg-[#1A1A1A]"
+            >
               <SkipForward className="h-4 w-4 text-zinc-50 fill-zinc-50" />
             </Button>
+
             <Button
               size="icon"
               variant="ghost"
+              onClick={props.onReplayMode}
               className="text-zinc-50 hover:bg-[#1A1A1A]"
             >
-              <RepeatIcon className="h-4 w-4" />
+              {props.replay_mode === "replay_playlist" && (
+                <RepeatIcon className="h-4 w-4" />
+              )}
+              {props.replay_mode === "replay_track" && (
+                <Repeat1Icon className="h-4 w-4 text-green-400" />
+              )}
             </Button>
           </div>
           <div className="flex w-full items-center gap-2">
@@ -121,41 +193,52 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
             <div className="text-xs text-zinc-400">{formatTime(duration)}</div>
           </div>
         </div>
-        <div className="flex flex-1 justify-end">
-          <div className="flex items-center gap-2">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-zinc-50 hover:bg-[#1A1A1A]"
-            >
-              <Mic2 className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-zinc-50 hover:bg-[#1A1A1A]"
-            >
-              <MonitorSpeaker className="h-4 w-4" />
-            </Button>
 
-            <Slider
-              className="w-[100px] [&_[role=slider]]:bg-zinc-50"
-              defaultValue={[100]}
-              max={100}
-              step={1}
-              onValueChange={(value) => {
-                if (audioRef.current) {
-                  audioRef.current.volume = value[0] / 100;
+        <div className="flex flex-1 justify-end">
+          <div className="flex items-center">
+            <div className="px-2 flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onToggleMute}
+                className="text-zinc-50 hover:bg-[#1A1A1A]"
+              >
+                {isMuted ? (
+                  <VolumeXIcon className="h-4 w-4" />
+                ) : (
+                  <Volume2Icon className="h-4 w-4" />
+                )}
+              </Button>
+
+              <Slider
+                className="w-[100px] [&_[role=slider]]:bg-zinc-50"
+                defaultValue={[100]}
+                max={100}
+                step={1}
+                value={[volume]}
+                onValueChange={(value) => {
+                  onVolumeChange(value[0]);
+                }}
+              />
+            </div>
+
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                if (document.fullscreenElement) {
+                  document.exitFullscreen();
+                } else {
+                  document.documentElement.requestFullscreen();
                 }
               }}
-            />
-
-            <Button
-              size="icon"
-              variant="ghost"
               className="text-zinc-50 hover:bg-[#1A1A1A]"
             >
-              <Maximize2 className="h-4 w-4" />
+              {document.fullscreenElement ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
@@ -165,9 +248,12 @@ export const Wrapper: React.FC<ContainerProps> = (props) => {
         className="hidden"
         ref={audioRef}
         onTimeUpdate={handleTimeUpdate}
-        onEnded={() => console.log("on next")}
-        src="/musics/sword-of-corruption.mp3"
+        onEnded={() => {
+          onEnd();
+        }}
+        src={props.current_track.source}
         onLoadedMetadata={handleTimeUpdate}
+        muted={isMuted}
       />
     </div>
   );
